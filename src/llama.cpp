@@ -22309,6 +22309,8 @@ const char * llama_print_system_info(void) {
         }
     }
 
+    s += "XEONPHI_KNC = " + std::to_string(ggml_cpu_is_xeonphi_knc())  + " | ";
+
     return s.c_str();
 }
 

@@ -14045,6 +14045,14 @@ int ggml_cpu_get_sve_cnt(void) {
 #endif
 }
 
+int ggml_cpu_is_xeonphi_knc(void) {
+#if defined(__k1om__)
+    return 1;
+#else
+    return 0;
+#endif
+}
+
 void ggml_cpu_init(void) {
     // needed to initialize f16 tables
     {

@@ -100,6 +100,8 @@ extern "C" {
     GGML_BACKEND_API int ggml_cpu_has_vsx        (void);
     GGML_BACKEND_API int ggml_cpu_has_wasm_simd  (void);
     GGML_BACKEND_API int ggml_cpu_has_llamafile  (void);
+    GGML_BACKEND_API int ggml_cpu_is_xeonphi_knc (void);
+
 
     // Internal types and functions exposed for tests and benchmarks
 
