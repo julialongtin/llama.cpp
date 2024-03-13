@@ -80,6 +80,12 @@
 #endif
 #endif // __has_feature
 
+// hand assembled replacement functions are cool.
+#if defined(__k1om__)
+#include <ggml-phi-knc.h>
+#include <ggml-phi-knc-dot_q5_K_q8_K.h>
+#endif
+
 #define UNUSED GGML_UNUSED
 #define SWAP(x, y, T) do { T SWAP = x; (x) = y; (y) = SWAP; } while (0)
 
