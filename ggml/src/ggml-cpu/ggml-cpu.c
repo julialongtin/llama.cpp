@@ -1460,6 +1460,8 @@ static void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float *
     for (int i = np; i < n; ++i) {
         sumf += x[i]*y[i];
     }
+#elif defined(__k1om__)
+    float sumf = DotProduct_F32(x, y, n);
 #else
     // scalar
     ggml_float sumf = 0.0;
