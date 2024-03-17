@@ -459,7 +459,7 @@ ifeq "${K1OM}" ""
 	#MK_CFLAGS   += -mssse3
 	#MK_CXXFLAGS += -mssse3
 else
-	OBJS         += ggml-phi-knc.o
+	OBJ_GGML     += ggml/src/ggml-phi-knc.o ggml/src/ggml-phi-knc-dot_q5_K_q8_K.o
 	MK_CFLAGS    += -march=knc -mtune=knc
 endif
 
@@ -1181,6 +1181,9 @@ clean: clean-server-assets
 # Helper function that replaces .c, .cpp, and .cu file endings with .o:
 GET_OBJ_FILE = $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(patsubst %.cu,%.o,$(1))))
 
+# Helper function that replaces .c, .cpp, and .cu file endings with .s:
+GET_ASM_FILE = $(patsubst %.c,%.s,$(patsubst %.cpp,%.s,$(patsubst %.cu,%.s,$(1))))
+
 llama-cli: examples/main/main.cpp \
 	$(OBJ_ALL)
 	$(CXX) $(CXXFLAGS) -c $< -o $(call GET_OBJ_FILE, $<)
@@ -1188,6 +1191,19 @@ llama-cli: examples/main/main.cpp \
 	@echo
 	@echo '====  Run ./llama-cli -h for help.  ===='
 	@echo
+
+bench-phi-knc.s: bench-phi-knc.c
+	$(CC) $(CFLAGS) -S $< -o $(call GET_ASM_FILE, $<)
+
+ggml/src/ggml-phi-knc.s: ggml/src/ggml-phi-knc.c
+	$(CC) $(CFLAGS) -S $< -o $(call GET_ASM_FILE, $<)
+
+bench-phi-knc: bench-phi-knc.c ggml/src/ggml-phi-knc.o ggml/src/ggml-phi-knc-dot_q5_K_q8_K.o
+	$(CC) $(CFLAGS) -c $< -o $(call GET_OBJ_FILE, $<)
+	$(CC) $(CFLAGS) $(filter-out %.h $<,$^) $(call GET_OBJ_FILE, $<) -o $@ $(LDFLAGS)
+
+ggml/src/ggml-phi-knc-knc-dot_q5_K_q8_K.s: ggml/src/ggml-phi-knc-dot_q5_K_q8_K.c
+	$(CC) $(CFLAGS) -S $< -o $(call GET_ASM_FILE, $<)
 
 llama-infill: examples/infill/infill.cpp \
 	$(OBJ_ALL)
