@@ -26,6 +26,11 @@
 #pragma warning(disable: 4244 4267)
 #endif
 
+// hand assembled replacement functions are cool.
+#if defined(__k1om__) // Xeon Phi support
+#include <ggml-phi-knc-dot_q5_K_q8_K.h>
+#endif
+
 #define UNUSED GGML_UNUSED
 
 // some compilers don't provide _mm256_set_m128i, e.g. gcc 7
@@ -6118,6 +6123,8 @@ void ggml_vec_dot_q4_K_q8_K(int n, float * restrict s, size_t bs, const void * r
 #endif
 }
 
+#if !defined(__k1om__) // We get this from elsewhere, for the Xeon Phi.
+
 void ggml_vec_dot_q5_K_q8_K(int n, float * restrict s, size_t bs, const void * restrict vx, size_t bx, const void * restrict vy,  size_t by, int nrc) {
     assert(n % QK_K == 0);
     assert(nrc == 1);
@@ -6754,6 +6761,7 @@ void ggml_vec_dot_q5_K_q8_K(int n, float * restrict s, size_t bs, const void * r
     *s = sumf;
 #endif
 }
+#endif
 
 void ggml_vec_dot_q6_K_q8_K(int n, float * restrict s, size_t bs, const void * restrict vx, size_t bx, const void * restrict vy, size_t by, int nrc) {
     assert(n % QK_K == 0);
