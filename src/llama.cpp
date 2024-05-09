@@ -9,6 +9,15 @@
 #include "ggml-backend.h"
 #include "ggml-cpp.h"
 
+// hand assembled replacement functions are cool.
+#if defined(__k1om__)
+#include "ggml-phi-knc-dot_q5_K_q8_K.h"
+
+#define ggml_fp16_to_fp32_row GGML_PHI_FP16_TO_FP32_ROW
+#define ggml_fp32_to_fp16_row GGML_PHI_FP32_TO_FP16_ROW
+
+#endif
+
 // TODO: replace with ggml API call
 #define QK_K 256
 
