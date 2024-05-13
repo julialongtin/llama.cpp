@@ -1599,7 +1599,7 @@ static void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float *
    UNUSED(by);
    UNUSED(bs);
 
-#ifdef GGML_SIMD
+#if defined(GGML_SIMD)
     float sumf = 0.0f;
     const int np = (n & ~(GGML_F32_STEP - 1));
 
@@ -2561,6 +2561,7 @@ void ggml_numa_init(enum ggml_numa_strategy numa_flag) {
 #   endif
 #   if defined(SYS_getcpu)
     getcpu_ret = syscall(SYS_getcpu, &current_cpu, &g_state.numa.current_node);
+#   endif /* defined(SYS_getcpu) */
 #endif
 
     if (g_state.numa.n_nodes < 1 || g_state.numa.total_cpus < 1 || getcpu_ret != 0) {
