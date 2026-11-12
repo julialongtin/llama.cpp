@@ -8,6 +8,9 @@
 // For size_t
 #include <stdio.h>
 
+// for memcpy
+#include <string.h>
+
 // Yes, we have to tell this header to actually export stuff.
 #define GGML_COMMON_IMPL_C
 #include "ggml-quants.h"
