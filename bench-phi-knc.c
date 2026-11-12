@@ -1,6 +1,5 @@
 /* bench-phi-knc.c: benchmarks and tests for the Xeon PHI Knights Corner optimizations. */
 
-#include <immintrin.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -83,13 +82,13 @@ int main(void)
   uint8x16_t q4[8];
   uint8_t * q4ptr = (uint8_t *)q4;
   for (int i = 0; i < 128; i++)
-    q4ptr[i] = rand() && 0xFF;
+    q4ptr[i] = rand() & 0xFF;
 
   // Generate a random input vector of 256 1 bit values.
   uint8x16_t q1[2];
   uint8_t * q1ptr = (uint8_t *)q1;
   for (int i = 0; i < 32; i++)
-    q1ptr[i] = rand() && 0xFF;
+    q1ptr[i] = rand() & 0xFF;
 
   // Get our reference, unshifted result.
   uint8x16_t q5[16];
@@ -127,12 +126,12 @@ int main(void)
   int8x16_t q8[16];
   int8_t * q8ptr = (int8_t *)q8;
   for (int i = 0; i < 256; i++)
-    q8ptr[i] = rand() && 0xFF;
+    q8ptr[i] = rand() & 0xFF;
 
   // Generate eight random scales, one for each pair of sums.
   uint8_t scale[8];
   for (int i = 0; i < 8; i++)
-    scale[i] = rand() && 0xFF;
+    scale[i] = rand() & 0xFF;
 
   // Generate a random X scale.
   float rndScaleX = 2 * (0.5 - rand() / (float)RAND_MAX);
