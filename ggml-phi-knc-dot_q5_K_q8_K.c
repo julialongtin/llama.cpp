@@ -16,6 +16,9 @@
 // For block_q5_K and block_q8_K.
 #include "ggml-common.h"
 
+// Handle unused funcion arguments in a way that GCC does not warn about them.
+#define UNUSED GGML_UNUSED
+
 // For our vector types, and forward declarations.
 #include "ggml-phi-knc-dot_q5_K_q8_K.h"
 
@@ -232,7 +235,7 @@ void GGML_5bit_Unpack_Unaligned (const uint8x16_t * q4, const uint8_t * q1, uint
                           "add\t$64,%%r13\n\t"                                // Between 16 and zero.
                           "24:\n\t"
                           "vpbroadcastd\t%[MASK]%{uint8%},\t%%zmm0\n\t"       // Load our mask.
-                          "vpbroadcastd\t%[BIT5]%{uint8},\t%%zmm1\n\t"        // Load the bit we want to add (conditionally).
+                          "vpbroadcastd\t%[BIT5]%{uint8%},\t%%zmm1\n\t"       // Load the bit we want to add (conditionally).
                           "vpbroadcastd\t%[M]%{uint8%},\t%%zmm2\n\t"          // Select which bit we want to test for. Start with bit 1.
                           "vmovdqa32\t(%[SRC1])%{uint8%},\t%%zmm3\n\t"        // Load 16 sets of 8 packed single bits.
                           "vmovdqa32\t16(%[SRC1])%{uint8%},\t%%zmm4\n\t"      // Load the next 16 sets of 8 packed single bits.
@@ -337,6 +340,12 @@ void GGML_5bit_Unpack_Unaligned (const uint8x16_t * q4, const uint8_t * q1, uint
 // A function for getting the dot product of two vectors, one of 5 bit resolution, and one of 8.
 // Used during inference, if your model prints "llama_model_loader: - type q5_K:  XXX tensors", and XXX is not zero. :)
 void ggml_vec_dot_q5_K_q8_K(int n, float * restrict s, size_t bs, const void * restrict vx, size_t bx, const void * restrict vy, size_t by, int nrc) {
+    assert(n % QK_K == 0);
+    assert(nrc == 1);
+    UNUSED(nrc);
+    UNUSED(bx);
+    UNUSED(by);
+    UNUSED(bs);
 
     /* Interpret X and Y as vectors. */
     const block_q5_K * restrict x = vx;
