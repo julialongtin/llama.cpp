@@ -386,6 +386,12 @@ void ggml_fp32_to_bf16_row(const float * x, ggml_bf16_t * y, int64_t n) {
     }
 }
 
+void ggml_fp32_to_bf16_row_ref(const float * x, ggml_bf16_t * y, int64_t n) {
+    for (int i = 0; i < n; i++) {
+        y[i] = ggml_compute_fp32_to_bf16(x[i]);
+    }
+}
+
 #else /* defined(__k1om__) */ 
 
 float ggml_fp16_to_fp32(ggml_fp16_t x) {
