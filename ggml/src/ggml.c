@@ -360,7 +360,34 @@ const char * ggml_status_to_string(enum ggml_status status) {
 #define ggml_fp16_to_fp32_row GGML_PHI_FP16_TO_FP32_ROW
 #define ggml_fp32_to_fp16_row GGML_PHI_FP32_TO_FP16_ROW
 
-#else
+// FIXME: make PHI versions of the below?
+
+float ggml_bf16_to_fp32(ggml_bf16_t x) {
+#define ggml_bf16_to_fp32 do_not_use__ggml_bf16_to_fp32__in_ggml
+    return GGML_BF16_TO_FP32(x);  // it just left shifts
+}
+
+ggml_bf16_t ggml_fp32_to_bf16(float x) {
+#define ggml_fp32_to_bf16 do_not_use__ggml_fp32_to_bf16__in_ggml
+    return GGML_FP32_TO_BF16(x);
+}
+
+void ggml_bf16_to_fp32_row(const ggml_bf16_t * x, float * y, int64_t n) {
+    int64_t i = 0;
+    for (; i < n; i++) {
+        y[i] = GGML_BF16_TO_FP32(x[i]);
+    }
+}
+
+void ggml_fp32_to_bf16_row(const float * x, ggml_bf16_t * y, int64_t n) {
+  int i = 0;
+    for (; i < n; i++) {
+        y[i] = GGML_FP32_TO_BF16(x[i]);
+    }
+}
+
+#else /* defined(__k1om__) */ 
+
 float ggml_fp16_to_fp32(ggml_fp16_t x) {
 #define ggml_fp16_to_fp32 do_not_use__ggml_fp16_to_fp32__in_ggml
     return GGML_FP16_TO_FP32(x);
