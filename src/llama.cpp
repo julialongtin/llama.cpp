@@ -5242,7 +5242,7 @@ struct llama_model_loader {
 // temporary allocate memory for the input batch if needed
 static const llama_seq_id batch_default_seq_id = 0;
 struct llama_batch_allocr {
-    std::array<llama_seq_id, 1> seq_id_0 = {batch_default_seq_id};
+  std::array<llama_seq_id, 1> seq_id_0 = {{ batch_default_seq_id }};
     std::vector<llama_pos>      pos;
     std::vector<int32_t>        n_seq_id;
     std::vector<llama_seq_id *> seq_id;
