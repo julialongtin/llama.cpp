@@ -608,7 +608,6 @@ FILE * ggml_fopen(const char * fname, const char * mode) {
 }
 
 static void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float * restrict x, size_t bx, const float * restrict y, size_t by, int nrc);
-#endif
 static void ggml_vec_dot_f16(int n, float * restrict s, size_t bs, ggml_fp16_t * restrict x, size_t bx, ggml_fp16_t * restrict y, size_t by, int nrc);
 static void ggml_vec_dot_bf16(int n, float * restrict s, size_t bs, ggml_bf16_t * restrict x, size_t bx, ggml_bf16_t * restrict y, size_t by, int nrc);
 
@@ -1181,7 +1180,6 @@ void ggml_print_objects(const struct ggml_context * ctx) {
 
     GGML_LOG_INFO("%s: --- end ---\n", __func__);
 }
-#endif
 
 int64_t ggml_nelements(const struct ggml_tensor * tensor) {
     static_assert(GGML_MAX_DIMS == 4, "GGML_MAX_DIMS is not 4 - update this function");
