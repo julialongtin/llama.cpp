@@ -459,7 +459,7 @@ ifeq "${K1OM}" ""
 	#MK_CFLAGS   += -mssse3
 	#MK_CXXFLAGS += -mssse3
 else
-	OBJ_GGML     += ggml/src/ggml-phi-knc.o ggml/src/ggml-phi-knc-dot_q5_K_q8_K.o
+	OBJ_GGML_EXT += ggml/src/ggml-phi-knc.o ggml/src/ggml-phi-knc-dot_q5_K_q8_K.o
 	MK_CFLAGS    += -march=knc -mtune=knc
 	GGML_NO_OPENMP := 1
 
