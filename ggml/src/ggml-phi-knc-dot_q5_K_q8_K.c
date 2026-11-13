@@ -82,10 +82,10 @@ void GGML_PHI_FP16_TO_FP32_ROW(const ggml_fp16_t * x, float * y, int n)
 			      "vmovaps\t32(%[SRC])%{float16%},\t%%zmm2\n\t"
 			      "vmovaps\t64(%[SRC])%{float16%},\t%%zmm3\n\t"
 			      "vmovaps\t96(%[SRC])%{float16%},\t%%zmm4\n\t"
-			      "vmovnraps\t%%zmm1,\t(%[DST])\n\t"             // full-cache-line stores with the no-read hint:
-			      "vmovnraps\t%%zmm2,\t64(%[DST])\n\t"           // no need to fetch the destination first.
-			      "vmovnraps\t%%zmm3,\t128(%[DST])\n\t"
-			      "vmovnraps\t%%zmm4,\t192(%[DST])\n\t"
+			      "vmovaps\t%%zmm1,\t(%[DST])\n\t"             // full-cache-line stores:
+			      "vmovaps\t%%zmm2,\t64(%[DST])\n\t"           // no need to fetch the destination first.
+			      "vmovaps\t%%zmm3,\t128(%[DST])\n\t"
+			      "vmovaps\t%%zmm4,\t192(%[DST])\n\t"
 			      :
 			      : [SRC] "r" (x + i),
 				[DST] "r" (y + i)
