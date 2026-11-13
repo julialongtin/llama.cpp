@@ -22,8 +22,6 @@ extern "C"
 
     // Zero out a vector of 16 Floats.
     void GGML_F32x16_VEC_ZERO(float32x16_t *target);
-    // Convert an FP16 value to FP32(Float).
-    float GGML_PHI_FP16_TO_FP32(ggml_fp16_t src);
     // Convert a set of FP16 values to FP32(Float).
     void GGML_PHI_FP16_TO_FP32_ROW(const ggml_fp16_t * x, float * y, int n);
     // Convert an FP32(Float) value to FP16.

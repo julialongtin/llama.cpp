@@ -85,8 +85,6 @@
 #include <ggml-phi-knc.h>
 #include <ggml-phi-knc-dot_q5_K_q8_K.h>
 
-#define ggml_fp16_to_fp32 GGML_PHI_FP16_TO_FP32
-#define ggml_fp32_to_fp16 GGML_PHI_FP32_TO_FP16
 #define ggml_fp16_to_fp32_row GGML_PHI_FP16_TO_FP32_ROW
 #define ggml_fp32_to_fp16_row GGML_PHI_FP32_TO_FP16_ROW
 
