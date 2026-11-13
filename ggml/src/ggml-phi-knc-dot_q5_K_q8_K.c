@@ -76,8 +76,6 @@ void GGML_PHI_FP16_TO_FP32_ROW(const ggml_fp16_t * x, float * y, int n)
 	__asm__ __volatile__ (
 			      "vprefetch0\t(%[SRC])\n\t"
 			      "vprefetch0\t64(%[SRC])\n\t"
-			      "vprefetch0\t128(%[SRC])\n\t"
-			      "vprefetch0\t192(%[SRC])\n\t"
 			      "vmovaps\t(%[SRC])%{float16%},\t%%zmm1\n\t"    // load + up-convert, 4 x 16.
 			      "vmovaps\t32(%[SRC])%{float16%},\t%%zmm2\n\t"
 			      "vmovaps\t64(%[SRC])%{float16%},\t%%zmm3\n\t"
@@ -119,12 +117,12 @@ ggml_fp16_t GGML_PHI_FP32_TO_FP16(float src)
 
     __asm__ __volatile__ (
                           "kmov\t%[M],\t%%k1\n\t"
-                          "vbroadcastss\t%[SRC],\t%%zmm2%{%%k1%}\n\t"
-                          "vmovaps\t\t%%zmm2%{float16%},\t%[DST]%{%%k1%}\n\t"
+                          "vbroadcastss\t%[SRC],\t%%zmm1%{%%k1%}\n\t"
+                          "vmovaps\t\t%%zmm1%{float16%},\t%[DST]%{%%k1%}\n\t"
                           : [DST]  "+m"  (f16)
                           : [SRC]   "m"  (src),
                             [M]     "r"  (mask)
-                          : "zmm2", "memory", "k1");
+                          : "zmm1", "memory", "k1");
     return f16[0];
 }
 
