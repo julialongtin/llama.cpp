@@ -140,7 +140,7 @@ int main(void)
   // Display the random X scale. Verifies FP32_TO_FP16_TO_FP32 is working.
   printf("rndScaleX: %f\n", rndScaleX);
   printf("scaleX: %x\n", scaleX);
-  printf("newScaleX: %f\n", GGML_PHI_FP16_TO_FP32(scaleX));
+  printf("newScaleX: %f\n", ggml_fp16_to_fp32(scaleX));
 
   // Generate a random Y scale.
   float scaleY = 2 * (0.5 - rand() / (float)RAND_MAX);

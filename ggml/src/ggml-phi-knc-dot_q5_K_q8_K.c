@@ -41,29 +41,7 @@ void GGML_F32x16_VEC_ZERO(float32x16_t *target)
                           : "zmm0", "memory");
 }
 
-/* Convert a FP16 to a FP32. */
-float GGML_PHI_FP16_TO_FP32(ggml_fp16_t src)
-{
-    // we only care aboun one result.
-    uint32_t mask=0x0001;
-
-    // we declare this as an array, so it ends up in a different memory section.
-    float f32[1] __attribute__((aligned(64)));
-
-    __asm__ __volatile__ (
-                          "kmov\t%[M],\t%%k1\n\t"
-                          "vbroadcastss\t%[SRC]%{float16%},\t%%zmm1%{%%k1%}\n\t"
-                          "vmovaps\t\t%%zmm1,\t%[DST]%{%%k1%}\n\t"
-                          : [DST] "+m"  (f32)
-                          : [SRC]  "m"  (src),
-                            [M]    "r"  (mask)
-                          : "zmm1", "memory", "k1");
-    return f32[0];
-}
-
 /* convert many FP16s to FP32s. */
-
-
 void GGML_PHI_FP16_TO_FP32_ROW(const ggml_fp16_t * x, float * y, int n)
 {
     int i = 0;
@@ -103,7 +81,7 @@ void GGML_PHI_FP16_TO_FP32_ROW(const ggml_fp16_t * x, float * y, int n)
 
     // and the remainder.
     for (; i < n; i++) {
-        y[i] = GGML_PHI_FP16_TO_FP32(x[i]);
+        y[i] = ggml_fp16_to_fp32(x[i]);
     }
 }
 
@@ -472,7 +450,7 @@ void ggml_vec_dot_q5_K_q8_K(int n, float * restrict s, size_t bs, const void * r
         // FIXME: While comparing FMA output to the original output, the original had an error. Hunt it down.
         GGML_8X_2xI8x16_2xI8x16_MUL_2xI16x16_S_FMA_I32x16_Unaligned((const int8x16_t *)y[i].qs, q5, scales, x[i].d, y[i].d, &sums);
 
-        const float dmin = GGML_PHI_FP16_TO_FP32(x[i].dmin) * y[i].d;
+        const float dmin = ggml_fp16_to_fp32(x[i].dmin) * y[i].d;
         sumf -= dmin * sumi;
     }
 

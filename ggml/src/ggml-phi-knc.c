@@ -16,8 +16,9 @@
 // A vector of 16 floats.
 typedef float float32x16_t __attribute__((vector_size (64), aligned (64)));
 
-// A forward declaration, to keep GCC happy...
-void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float * restrict x, size_t bx, const float * restrict y, size_t by, int nrc);
+// pull in our forward declarations.
+#include "ggml-phi-knc.h"
+
 
 inline static void GGML_F32x16_VEC_ZERO(float32x16_t *target)
 {
@@ -155,3 +156,24 @@ void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float * restri
         *s+=((float *)&sum)[i];
 
 }
+
+/* Convert a FP16 to a FP32. */
+float ggml_fp16_to_fp32(ggml_fp16_t src)
+{
+    // we only care aboun one result.
+    uint32_t mask=0x0001;
+
+    // we declare this as an array, so it ends up in a different memory section.
+    float f32[1] __attribute__((aligned(64)));
+
+    __asm__ __volatile__ (
+                          "kmov\t%[M],\t%%k1\n\t"
+                          "vbroadcastss\t%[SRC]%{float16%},\t%%zmm1%{%%k1%}\n\t"
+                          "vmovaps\t\t%%zmm1,\t%[DST]%{%%k1%}\n\t"
+                          : [DST] "+m"  (f32)
+                          : [SRC]  "m"  (src),
+                            [M]    "r"  (mask)
+                          : "zmm1", "memory", "k1");
+    return f32[0];
+}
+
