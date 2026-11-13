@@ -355,8 +355,6 @@ const char * ggml_status_to_string(enum ggml_status status) {
 // these are meant to be used via the ggml.h API
 #if defined(__k1om__)
 
-#define ggml_fp16_to_fp32 GGML_PHI_FP16_TO_FP32
-#define ggml_fp32_to_fp16 GGML_PHI_FP32_TO_FP16
 #define ggml_fp16_to_fp32_row GGML_PHI_FP16_TO_FP32_ROW
 #define ggml_fp32_to_fp16_row GGML_PHI_FP32_TO_FP16_ROW
 
