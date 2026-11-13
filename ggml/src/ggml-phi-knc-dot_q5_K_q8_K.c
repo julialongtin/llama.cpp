@@ -62,9 +62,49 @@ float GGML_PHI_FP16_TO_FP32(ggml_fp16_t src)
 }
 
 /* convert many FP16s to FP32s. */
+
+
 void GGML_PHI_FP16_TO_FP32_ROW(const ggml_fp16_t * x, float * y, int n)
 {
-    for (int i = 0; i < n; i++) {
+    int i = 0;
+
+    // Handle the aligned part..
+    if ((((uintptr_t) x & 31) == 0) && (((uintptr_t) y & 63) == 0)) {
+
+      // 64 FP16s in (128 bytes = 2 cache lines), 64 FP32s out (256 bytes = 4 cache lines).
+      for (; i + 64 <= n; i += 64) {
+	__asm__ __volatile__ (
+			      "vprefetch0\t(%[SRC])\n\t"
+			      "vprefetch0\t64(%[SRC])\n\t"
+			      "vprefetch0\t128(%[SRC])\n\t"
+			      "vprefetch0\t192(%[SRC])\n\t"
+			      "vmovaps\t(%[SRC])%{float16%},\t%%zmm1\n\t"    // load + up-convert, 4 x 16.
+			      "vmovaps\t32(%[SRC])%{float16%},\t%%zmm2\n\t"
+			      "vmovaps\t64(%[SRC])%{float16%},\t%%zmm3\n\t"
+			      "vmovaps\t96(%[SRC])%{float16%},\t%%zmm4\n\t"
+			      "vmovnraps\t%%zmm1,\t(%[DST])\n\t"             // full-cache-line stores with the no-read hint:
+			      "vmovnraps\t%%zmm2,\t64(%[DST])\n\t"           // no need to fetch the destination first.
+			      "vmovnraps\t%%zmm3,\t128(%[DST])\n\t"
+			      "vmovnraps\t%%zmm4,\t192(%[DST])\n\t"
+			      :
+			      : [SRC] "r" (x + i),
+				[DST] "r" (y + i)
+			      : "zmm1", "zmm2", "zmm3", "zmm4", "memory");
+      }
+
+      // what is left over, 16 at a time.
+      for (; i + 16 <= n; i += 16) {
+	__asm__ __volatile__ (
+			      "vmovaps\t%[SRC]%{float16%},\t%%zmm1\n\t"  // load 16 FP16s, up-converting to 16 FP32s.
+			      "vmovaps\t\t%%zmm1,\t%[DST]\n\t"          // store 16 FP32s.
+			      : [DST] "=m" (*(float (*)[16]) (y + i))
+			      : [SRC]  "m" (*(const ggml_fp16_t (*)[16]) (x + i))
+			      : "zmm1");
+      }
+    }
+
+    // and the remainder.
+    for (; i < n; i++) {
         y[i] = GGML_PHI_FP16_TO_FP32(x[i]);
     }
 }
@@ -91,7 +131,46 @@ ggml_fp16_t GGML_PHI_FP32_TO_FP16(float src)
 /* convert many FP32s to FP16s. */
 void GGML_PHI_FP32_TO_FP16_ROW(const float * x, ggml_fp16_t * y, int n)
 {
-    for (int i = 0; i < n; i++) {
+    int i = 0;
+
+    if ((((uintptr_t) x & 63) == 0) && (((uintptr_t) y & 31) == 0)) {
+        // 64 FP32s in (256 bytes = 4 cache lines), 64 FP16s out (128 bytes = 2 cache lines).
+        // The stores only fill half a cache line each, so the no-read hint can't be used;
+        // instead, prefetch the destination with intent to write (vprefetche1).
+        for (; i + 64 <= n; i += 64) {
+	  __asm__ __volatile__ (
+				"vprefetch0\t(%[SRC])\n\t"                     // near: source into L1.
+				"vprefetch0\t64(%[SRC])\n\t"
+				"vprefetch0\t128(%[SRC])\n\t"
+				"vprefetch0\t192(%[SRC])\n\t"
+				"vmovaps\t\t(%[SRC]),\t%%zmm1\n\t"             // load, 4 x 16.
+				"vmovaps\t\t64(%[SRC]),\t%%zmm2\n\t"
+				"vmovaps\t\t128(%[SRC]),\t%%zmm3\n\t"
+				"vmovaps\t\t192(%[SRC]),\t%%zmm4\n\t"
+				"vmovaps\t\t%%zmm1%{float16%},\t(%[DST])\n\t"  // store + down-convert, 4 x 16.
+				"vmovaps\t\t%%zmm2%{float16%},\t32(%[DST])\n\t"
+				"vmovaps\t\t%%zmm3%{float16%},\t64(%[DST])\n\t"
+				"vmovaps\t\t%%zmm4%{float16%},\t96(%[DST])\n\t"
+				:
+				: [SRC] "r" (x + i),
+				  [DST] "r" (y + i)
+				: "zmm1", "zmm2", "zmm3", "zmm4", "memory");
+	}
+
+        // what is left over, 16 at a time.
+        for (; i + 16 <= n; i += 16) {
+	  __asm__ __volatile__ (
+				"vmovaps\t\t(%[SRC]),\t%%zmm2\n\t"
+				"vmovaps\t\t%%zmm2%{float16%},\t(%[DST])\n\t"
+				:
+				: [SRC] "r" (x + i),
+				  [DST] "r" (y + i)
+				: "zmm2", "memory");
+	}
+    }
+
+    // and the remainder
+    for (; i < n; i++) {
         y[i] = GGML_PHI_FP32_TO_FP16(x[i]);
     }
 }
