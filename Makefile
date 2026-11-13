@@ -461,7 +461,9 @@ ifeq "${K1OM}" ""
 else
 	OBJ_GGML_EXT += ggml/src/ggml-phi-knc.o ggml/src/ggml-phi-knc-dot_q5_K_q8_K.o
 	MK_CFLAGS    += -march=knc -mtune=knc
-	GGML_NO_OPENMP := 1
+	GGML_NO_OPENMP    := 1
+	GGML_NO_LLAMAFILE := 1
+	GGML_NO_AMX       := 1
 
 endif
 

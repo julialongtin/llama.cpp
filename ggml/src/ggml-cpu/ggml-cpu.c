@@ -263,7 +263,10 @@ typedef pthread_t ggml_thread_t;
 static const size_t CACHE_LINE_SIZE_F32 = CACHE_LINE_SIZE/sizeof(float);
 
 
+// Forward declarations. don't use one, if we're pulling from a separate object file.
+#if !defined(__k1om__)
 static void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float * restrict x, size_t bx, const float * restrict y, size_t by, int nrc);
+#endif
 static void ggml_vec_dot_f16(int n, float * restrict s, size_t bs, ggml_fp16_t * restrict x, size_t bx, ggml_fp16_t * restrict y, size_t by, int nrc);
 static void ggml_vec_dot_bf16(int n, float * restrict s, size_t bs, ggml_bf16_t * restrict x, size_t bx, ggml_bf16_t * restrict y, size_t by, int nrc);
 
@@ -1431,6 +1434,8 @@ inline static void ggml_vec_neg_f32 (const int n, float * y, const float * x)   
 inline static void ggml_vec_mul_f32 (const int n, float * z, const float * x, const float * y) { for (int i = 0; i < n; ++i) z[i]  = x[i]*y[i];   }
 inline static void ggml_vec_div_f32 (const int n, float * z, const float * x, const float * y) { for (int i = 0; i < n; ++i) z[i]  = x[i]/y[i];   }
 
+// We don't use this implementation on the xeon phi.
+#if !defined(__k1om__)
 static void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float * restrict x, size_t bx, const float * restrict y, size_t by, int nrc) {
    assert(nrc == 1);
    UNUSED(nrc);
@@ -1471,6 +1476,8 @@ static void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float *
 #endif
     *s = sumf;
 }
+#endif // Xeon phi exclusion.
+
 
 static void ggml_vec_dot_bf16(int n, float * restrict s, size_t bs, ggml_bf16_t * restrict x, size_t bx, ggml_bf16_t * restrict y, size_t by, int nrc) {
     assert(nrc == 1);
