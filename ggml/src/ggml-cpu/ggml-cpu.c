@@ -84,6 +84,12 @@
 #if defined(__k1om__)
 #include <ggml-phi-knc.h>
 #include <ggml-phi-knc-dot_q5_K_q8_K.h>
+
+#define ggml_fp16_to_fp32 GGML_PHI_FP16_TO_FP32
+#define ggml_fp32_to_fp16 GGML_PHI_FP32_TO_FP16
+#define ggml_fp16_to_fp32_row GGML_PHI_FP16_TO_FP32_ROW
+#define ggml_fp32_to_fp16_row GGML_PHI_FP32_TO_FP16_ROW
+
 #endif
 
 #define UNUSED GGML_UNUSED
@@ -497,8 +503,6 @@ const struct ggml_type_traits_cpu * ggml_get_type_traits_cpu(enum ggml_type type
 // because we are not defining GGML_SIMD, we have to do this ourself.
 #define GGML_F32_ARR (GGML_F32_STEP/GGML_F32_EPR)
 
-// our vector. 128*32=512
-typedef float float32x16_t __attribute__((vector_size (128)));
 #define GGML_F32x16              float32x16_t
 #define GGML_F32x16_ZERO		      \
   {					      \
@@ -510,7 +514,6 @@ typedef float float32x16_t __attribute__((vector_size (128)));
          [V]   "r" 0.0f)		      \
   return res;				      \
   }
-//vdupq_n_f32(0.0f)
 
 #define GGML_F32_VEC        GGML_F32x16
 #define GGML_F32_VEC_ZERO   GGML_F32x16_ZERO
@@ -1460,16 +1463,12 @@ static void ggml_vec_dot_f32(int n, float * restrict s, size_t bs, const float *
     for (int i = np; i < n; ++i) {
         sumf += x[i]*y[i];
     }
-#elif defined(__k1om__)
-    float sumf = DotProduct_F32(x, y, n);
 #else
-    // scalar
-    ggml_float sumf = 0.0;
+    ggml_float sumf = 0.0f;
     for (int i = 0; i < n; ++i) {
         sumf += (ggml_float)(x[i]*y[i]);
     }
 #endif
-
     *s = sumf;
 }
 
@@ -2270,7 +2269,8 @@ inline static void ggml_vec_argmax_f32(const int n, int * s, const float * x) {
 static inline void ggml_thread_cpu_relax(void) {
     __asm__ volatile("yield" ::: "memory");
 }
-#elif defined(__x86_64__)
+// k1om is x86_64, but no glibc.
+#elif defined(__x86_64__) && !defined(__k1om__)
 static inline void ggml_thread_cpu_relax(void) {
     _mm_pause();
 }
@@ -2403,6 +2403,9 @@ void ggml_numa_init(enum ggml_numa_strategy numa_flag) {
 
     GGML_PRINT_DEBUG("found %u numa nodes, %u CPUs\n", g_state.numa.n_nodes, g_state.numa.total_cpus);
 
+#if defined (__k1om__) // Xeon Phi -- no GLIBC.
+    return;
+#else
     // figure out which node we're on
     uint current_cpu;
     int getcpu_ret = 0;
@@ -2414,12 +2417,13 @@ void ggml_numa_init(enum ggml_numa_strategy numa_flag) {
 #       define SYS_getcpu SYS_get_cpu // some older glibc versions use this name
 #   endif
     getcpu_ret = syscall(SYS_getcpu, &current_cpu, &g_state.numa.current_node);
-#endif
 
     if (g_state.numa.n_nodes < 1 || g_state.numa.total_cpus < 1 || getcpu_ret != 0) {
         g_state.numa.n_nodes = 0;
         return;
     }
+#endif // GLIBC support
+#endif // Xeon Phi -- No GLIBC.
 
     GGML_PRINT_DEBUG("found our process on numa node %u, CPU %u\n", g_state.numa.current_node, current_cpu);
 
