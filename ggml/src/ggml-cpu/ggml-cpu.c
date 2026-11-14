@@ -2280,7 +2280,9 @@ static inline void ggml_thread_cpu_relax(void) {
     _mm_pause();
 }
 #else
-static inline void ggml_thread_cpu_relax(void) {;}
+static inline void ggml_thread_cpu_relax(void) {
+  __asm__ __volatile__ ("delay\t%0" :: "r"(256));   // stall this hardware thread ~256 cycles
+}
 #endif
 
 //
