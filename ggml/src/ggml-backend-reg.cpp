@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <codecvt>
 #include <cstring>
+#if !defined(__k1om__)
 #include <filesystem>
+#endif
 #include <locale>
 #include <memory>
 #include <string>
@@ -450,8 +452,13 @@ static std::string backend_filename_suffix() {
 }
 
 static ggml_backend_reg_t ggml_backend_load_best(const char * name, bool silent) {
+#if defined(__k1om__) // Xeon Phi.
+  GGML_UNUSED(name);
+  GGML_UNUSED(silent);
+  return nullptr;
+#else
     // enumerate all the files that match [lib]ggml-name-*.[so|dll] in the search paths
-     // TODO: search system paths
+    // TODO: search system paths
     std::vector<std::string> search_paths = { "./", get_executable_path() };
     std::string file_prefix = backend_filename_prefix() + name + "-";
 
@@ -506,6 +513,7 @@ static ggml_backend_reg_t ggml_backend_load_best(const char * name, bool silent)
     }
 
     return get_reg().load_backend(best_path.c_str(), silent);
+#endif
 }
 
 void ggml_backend_load_all() {
